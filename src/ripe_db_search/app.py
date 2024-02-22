@@ -14,7 +14,7 @@ from typing import (
     Literal,
     TypeVar,
 )
-
+import logging
 import asyncpg
 from fastapi import FastAPI, Request, Response, Depends
 from fastapi.exceptions import HTTPException
@@ -25,7 +25,6 @@ from pydantic import (
     computed_field,
     Field,
 )
-import logging
 from .config import settings
 
 LOG = logging.getLogger("uvicorn.error")
@@ -107,6 +106,7 @@ async def ipinfo(addr: str) -> IPInfo:
     try:
         async with asyncio.timeout(2):
             ip = await gethostbyname(addr)
+            LOG.info("resolved: %s -> %s", addr, ip)
     except (socket.gaierror, TimeoutError):
         raise HTTPException(
             400, detail={"message": "invalid address or timeout"}
