@@ -191,7 +191,7 @@ def filename_from_url(url: str) -> str:
 def download_database(
     url: str,
     path: Path,
-) -> tuple[bool, urllib.error.URLError | None]:
+) -> None:
     headers = {
         "User-Agent": USER_AGENT,
     }
@@ -208,13 +208,9 @@ def download_database(
 
     req = Request(url, headers=headers)
 
-    try:
-        with urlopen(req) as resp:
-            with path.open("w+b") as fp:
-                shutil.copyfileobj(resp, fp)
-        return True, None
-    except urllib.error.URLError as ex:
-        return False, ex
+    with urlopen(req) as resp:
+        with path.open("w+b") as fp:
+            shutil.copyfileobj(resp, fp)
 
 
 def parse_block(curline: str, fp: TextIO) -> dict[str, str]:
@@ -355,12 +351,12 @@ async def main(argv: Sequence[str] | None = None) -> None:
 
     print_stderr(f"{YELLOW}downloading...{CLEAR}")
     for url, path in database_paths.items():
-        downloaded, err = download_database(url, path)
-        if downloaded:
+        try:
+            download_database(url, path)
             print_stderr(f"{GREEN}downloaded: {url}{CLEAR}")
-        else:
-            if getattr(err, "code") != 304:
-                print_stderr(f"{RED}{err}{CLEAR}")
+        except urllib.error.URLError as ex:
+            if getattr(ex, "code") != 304:
+                print_stderr(f"{RED}{ex}{CLEAR}")
                 sys.exit(1)
             print_stderr(f"{MAGENTA}resource is not modified: {url}{CLEAR}")
 
