@@ -132,7 +132,7 @@ x-execution-time: 0.007384531985735521
 
 Тут в принципе описан весь процесс разработки через Dev Containers с использованием Compose.
 
-`Ctrl-Shift-P`, `Dev Containers: Open Folder in Container`
+`Ctrl-Shift-P`, `Dev Containers: Open Folder in Container`, а далее запускаем дебагер...
 
 Если нужно пересоздать ... > `Add configuration to workspace` > `From 'docker-compose.yml'`, выбираем `app` (питоновское приложение, которое будет отлаживать)
 
