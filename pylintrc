@@ -432,8 +432,10 @@ confidence=HIGH,
 #         use-implicit-booleaness-not-comparison-to-string,
 #         use-implicit-booleaness-not-comparison-to-zero
 
-disable=invalid-envvar-default,
+disable=fixme,
+        invalid-envvar-default,
         line-too-long,
+        logging-fstring-interpolation,
         missing-class-docstring,
         missing-function-docstring,
         missing-module-docstring,

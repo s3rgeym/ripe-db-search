@@ -5,15 +5,30 @@ import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import AsyncIterator, Awaitable, Callable, Generic, TypeVar
+from typing import (
+    Any,
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    Generic,
+    Literal,
+    TypeVar,
+)
 
 import asyncpg
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Depends
 from fastapi.exceptions import HTTPException
-from pydantic import BaseModel, IPvAnyAddress, IPvAnyNetwork, computed_field
-
+from pydantic import (
+    BaseModel,
+    IPvAnyAddress,
+    IPvAnyNetwork,
+    computed_field,
+    Field,
+)
+import logging
 from .config import settings
 
+LOG = logging.getLogger("uvicorn.error")
 CUR_PATH = Path(__file__).parent
 DB_SCHEMA_PATH = CUR_PATH / "schema.sql"
 
@@ -48,7 +63,8 @@ app = FastAPI(lifespan=lifespan)
 
 @app.middleware("http")
 async def add_execution_time_header(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    request: Request,
+    call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
     dt = -time.monotonic()
     response = await call_next(request)
@@ -57,15 +73,15 @@ async def add_execution_time_header(
     return response
 
 
-class InetnumModel(BaseModel):
+class Inetnum(BaseModel):
     first_ip: IPvAnyAddress
     last_ip: IPvAnyAddress
-    netname: str | None
-    descr: str | None
-    country: str | None
-    org: str | None
-    created: datetime | None
-    last_modified: datetime | None
+    netname: str | None = None
+    descr: str | None = None
+    country: str | None = None
+    org: str | None = None
+    created: datetime | None = None
+    last_modified: datetime | None = None
 
     @computed_field
     @property
@@ -74,33 +90,45 @@ class InetnumModel(BaseModel):
             ipaddress.summarize_address_range(self.first_ip, self.last_ip)
         )
 
+    @computed_field
+    @property
+    def num_addresses(self) -> int:
+        return sum(x.num_addresses for x in self.cidrs)
 
-class IPInfoModel(BaseModel):
+
+class IPInfo(BaseModel):
     input: str
     ip: str
-    inetnum: InetnumModel
+    inetnum: Inetnum
 
 
-@app.get("/addrinfo/{addr}")
-async def ipinfo(addr: str) -> IPInfoModel:
+@app.get("/ipinfo/{addr}", response_model_exclude_none=True)
+async def ipinfo(addr: str) -> IPInfo:
     try:
-        ip = await gethostbyname(addr)
-    except socket.gaierror:
-        raise HTTPException(400, detail={"message": "invalid address"})
-    # В базе данных RIPE много записей с пересекающимися диапазонами
-    # select * from inetnums where '77.88.55.242' between first_ip and last_ip order by 1 desc limit 1;
+        async with asyncio.timeout(2):
+            ip = await gethostbyname(addr)
+    except (socket.gaierror, TimeoutError):
+        raise HTTPException(
+            400, detail={"message": "invalid address or timeout"}
+        )
+    # В базе данных RIPE много записей с пересекающимися диапазонами, мы ищем наименьший диапазон. Если ничего подходящего не будет найдено, то вернет что-то типа 0.0.0.0-255.255.255.255
     record = await app.pool.fetchrow(
-        "select * from inetnums where $1 between first_ip and last_ip order by first_ip desc, last_ip asc",
+        """
+        select * from inetnums
+            where $1 between first_ip and last_ip
+            order by first_ip desc, last_ip asc
+            limit 1
+        """,
         ip,
     )
-    return dict(input=addr, ip=ip, inetnum=InetnumModel(**record))
+    return dict(input=addr, ip=ip, inetnum=Inetnum(**record))
 
 
 # https://docs.pydantic.dev/latest/concepts/models/#generic-models
 T = TypeVar("T")
 
 
-class PageModel(BaseModel, Generic[T]):
+class Pagination(BaseModel, Generic[T]):
     page: int
     per_page: int
     pages: int
@@ -108,28 +136,34 @@ class PageModel(BaseModel, Generic[T]):
     results: list[T]
 
 
-@app.get("/search")
-async def search(
-    q: str, page: int = 1, per_page: int = 100
-) -> PageModel[InetnumModel]:
-    page = max(page, 1)
-    per_page = min(500, max(per_page, 10))
-    limit = page * per_page
-    offset = limit - per_page
-    records = [
-        record
-        for record in await app.pool.fetch(
-            "select *, count(*) over() as total_count from inetnums where search_vector @@ to_tsquery($1) order by id desc limit $2 offset $3",
-            q,
-            limit,
-            offset,
+class SearchParams(BaseModel):
+    q: str = ""
+    page: int = Field(1, alias="p", ge=1)
+    # приводит к ошибке
+    # per_page: Literal[10, 25, 50, 100, 250, 500] = 25
+    per_page: int = Field(25, ge=1, le=100)
+
+
+@app.get("/search", response_model_exclude_none=True)
+async def search(s: SearchParams = Depends()) -> Pagination[Inetnum]:
+    records = list(
+        await app.pool.fetch(
+            """
+            select *, count(*) over() as total_count from inetnums
+                where search_vector @@ to_tsquery($1)
+                order by id desc
+                limit $2 offset $3
+            """,
+            s.q,
+            s.per_page,
+            (s.page - 1) * s.per_page,
         )
-    ]
+    )
     total = records[0]["total_count"] if records else 0
     return {
-        "page": page,
-        "per_page": per_page,
-        "pages": total // per_page + 1,
+        "page": s.page,
+        "per_page": s.per_page,
+        "pages": total // s.per_page + 1,
         "total": total,
-        "results": [InetnumModel(**x) for x in records],
+        "results": [Inetnum(**x) for x in records],
     }

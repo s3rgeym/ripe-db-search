@@ -6,6 +6,7 @@
 
 * Там существуют ограничения на количество запросов
 * Многие сервисы работают под Cloudflare, который часто блокирует запросы
+* Они ведут логи
 
 ## Установка
 
@@ -39,75 +40,87 @@ $ docker compose run app python import_ripe_db.py
 Получение инормации об адресе:
 
 ```bash
-❯ http :9080/addrinfo/ya.ru
+❯ http :9080/ipinfo/ya.ru
 HTTP/1.1 200 OK
-content-length: 294
+content-length: 319
 content-type: application/json
-date: Thu, 22 Feb 2024 05:46:41 GMT
+date: Thu, 22 Feb 2024 17:02:53 GMT
 server: uvicorn
-x-execution-time: 0.6265822789864615
+x-execution-time: 0.019827787997201085
 
 {
     "inetnum": {
         "cidrs": [
-            "77.88.55.0/24"
+            "5.255.255.0/24"
         ],
         "country": "RU",
-        "created": "2012-10-12T12:22:03",
+        "created": "2013-04-25T13:29:22",
         "descr": "Yandex enterprise network",
-        "first_ip": "77.88.55.0",
-        "last_ip": "77.88.55.255",
-        "last_modified": "2022-04-05T15:29:50",
-        "netname": "YANDEX-77-88-55",
+        "first_ip": "5.255.255.0",
+        "last_ip": "5.255.255.255",
+        "last_modified": "2022-04-05T15:29:03",
+        "netname": "YANDEX-5-255-255",
+        "num_addresses": 256,
         "org": "ORG-YA1-RIPE"
     },
     "input": "ya.ru",
-    "ip": "77.88.55.242"
+    "ip": "5.255.255.242"
 }
 ```
 
 Поиск подсетей по полям netname, descr, org и country:
 
 ```bash
-❯ http :9080/search q==sber
+❯ http :9080/search q==sber per_page==3 p==5
 HTTP/1.1 200 OK
-content-length: 8272
+content-length: 723
 content-type: application/json
-date: Thu, 22 Feb 2024 06:14:59 GMT
+date: Thu, 22 Feb 2024 18:15:02 GMT
 server: uvicorn
-x-execution-time: 0.007384531985735521
+x-execution-time: 0.005476296006236225
 
 {
-    "page": 1,
-    "pages": 1,
-    "per_page": 100,
+    "page": 5,
+    "pages": 12,
+    "per_page": 3,
     "results": [
         {
             "cidrs": [
-                "182.75.125.12/30"
+                "188.246.76.84/30"
             ],
-            "country": "IN",
-            "created": null,
-            "descr": "SBERBANK OF RUSSIA\nn/a\nUGF GOPAL DAS BHAWAN 28 BARAKHAMBA\nROAD New-Delhi-110001 DelhiINdia\nNew-Delhi\nDELHI\nIndia\nContact Person: SANJAY CHAMOLA\n********\nPhone: 1140048887",
-            "first_ip": "182.75.125.12",
-            "last_ip": "182.75.125.15",
-            "last_modified": "2021-01-24T23:18:19",
-            "netname": "SBER-2166934-New-Delhi",
-            "org": null
+            "country": "BA",
+            "created": "2017-09-01T11:10:52",
+            "descr": "Sber",
+            "first_ip": "188.246.76.84",
+            "last_ip": "188.246.76.87",
+            "last_modified": "2017-09-01T11:10:52",
+            "netname": "Blicnet",
+            "num_addresses": 4
         },
-        # ...
         {
             "cidrs": [
-                "195.56.127.104/29"
+                "78.37.87.64/29"
             ],
-            "country": "HU",
-            "created": "2005-09-16T10:05:20",
-            "descr": "Schoeler-Bleichmann Phoenix Ltd.\nBudapest",
-            "first_ip": "195.56.127.104",
-            "last_ip": "195.56.127.111",
-            "last_modified": "2021-10-20T13:50:06",
-            "netname": "SBER-HU",
-            "org": null
+            "country": "RU",
+            "created": "2016-09-15T11:34:01",
+            "descr": "PAO Sberbank, banking",
+            "first_ip": "78.37.87.64",
+            "last_ip": "78.37.87.71",
+            "last_modified": "2016-09-15T11:34:01",
+            "netname": "RU-SBER-8626",
+            "num_addresses": 8
+        },
+        {
+            "cidrs": [
+                "78.37.87.56/29"
+            ],
+            "country": "RU",
+            "created": "2016-09-02T13:06:26",
+            "first_ip": "78.37.87.56",
+            "last_ip": "78.37.87.63",
+            "last_modified": "2016-09-02T13:06:26",
+            "netname": "RU-SBER-7382",
+            "num_addresses": 8
         }
     ],
     "total": 33
@@ -116,7 +129,7 @@ x-execution-time: 0.007384531985735521
 
 > Чтобы искать только по стране добавьте вкруг кода страны пробелы, например, ` ru `
 
-Локальная документация:
+Локальная документация + песочница для выполнения запросов:
 
 * http://localhost:9080/docs
 

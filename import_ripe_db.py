@@ -52,7 +52,6 @@ USER_AGENT = (
 
 
 DATABASE_URLS = [
-    # Ссылки на ripe.net должны быть первыми тк содержат фолбечные сетки типа 0.0.0.0-255.255.255.255
     "https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz",
     "https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz",
     # нигры
@@ -391,7 +390,7 @@ async def main(argv: Sequence[str] | None = None) -> None:
                     assert op == "COPY", op
                     total_records += int(size)
                     print_stderr(
-                        f"{CLEAR_LINE}{YELLOW}[{next(spin)}] total records copied: {total_records}{CLEAR}",
+                        f"{CLEAR_LINE}{YELLOW}{next(spin)} total records copied: {total_records}{CLEAR}",
                         end="",
                     )
         print_stderr()
