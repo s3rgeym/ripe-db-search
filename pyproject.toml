@@ -1,0 +1,31 @@
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ripe_db_search"
+authors = [{name = "Sergey M"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+
+dependencies = [
+  "fastapi",
+  "pydantic-settings",
+  "uvicorn",
+  "asyncpg",
+]
+
+dynamic = ["version"]
+
+# pip install -e '.[dev]'
+[project.optional-dependencies]
+# форматирование и тп
+dev = [
+  "black",
+  "pylint",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "ripe_db_search.__version__"}
