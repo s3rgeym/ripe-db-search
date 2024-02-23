@@ -8,7 +8,7 @@
 * Многие работают под Cloudflare, который часто блокирует запросы
 * Они ведут логи
 
-## Установка и требования
+## Запуск и требования
 
 Необходимо где-то 4.5 гигабайта свободного места.
 
@@ -17,30 +17,6 @@ Cистемные зависимости:
 ```bash
 yay -S docker{,-compose}
 ```
-
-Место, занимаемое базой:
-
-```bash
-❯ docker compose exec postgres psql -U ripe_db
-psql (16.2)
-Type "help" for help.
-
-ripe_db=# \l+
-                                                                                       List of databases
-   Name    |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |  Access privileges  |  Size   | Tablespace |                Description
------------+---------+----------+-----------------+------------+------------+------------+-----------+---------------------+---------+------------+--------------------------------------------
- postgres  | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                     | 7508 kB | pg_default | default administrative connection database
- ripe_db   | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                     | 3268 MB | pg_default |
- template0 | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/ripe_db         +| 7353 kB | pg_default | unmodifiable empty database
-           |         |          |                 |            |            |            |           | ripe_db=CTc/ripe_db |         |            |
- template1 | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/ripe_db         +| 7572 kB | pg_default | default template for new databases
-           |         |          |                 |            |            |            |           | ripe_db=CTc/ripe_db |         |            |
-(4 rows)
-
-ripe_db=#
-```
-
-## Запуск
 
 Запуск стека:
 
@@ -76,6 +52,28 @@ finished at 503.597s
 ```
 
 Эту операцию нужно повторять по мере необходимости.
+
+Место, занимаемое базой:
+
+```bash
+❯ docker compose exec postgres psql -U ripe_db
+psql (16.2)
+Type "help" for help.
+
+ripe_db=# \l+
+                                                                                       List of databases
+   Name    |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |  Access privileges  |  Size   | Tablespace |                Description
+-----------+---------+----------+-----------------+------------+------------+------------+-----------+---------------------+---------+------------+--------------------------------------------
+ postgres  | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                     | 7508 kB | pg_default | default administrative connection database
+ ripe_db   | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                     | 3268 MB | pg_default |
+ template0 | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/ripe_db         +| 7353 kB | pg_default | unmodifiable empty database
+           |         |          |                 |            |            |            |           | ripe_db=CTc/ripe_db |         |            |
+ template1 | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/ripe_db         +| 7572 kB | pg_default | default template for new databases
+           |         |          |                 |            |            |            |           | ripe_db=CTc/ripe_db |         |            |
+(4 rows)
+
+ripe_db=#
+```
 
 ## Запросы к API
 
