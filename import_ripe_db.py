@@ -319,7 +319,7 @@ def normalize_inetnums(
             )
         # FIXME: ValueError: 24.152.0/22
         except ValueError as ex:
-            print_stderr(f"{ANSI_RED}WARN: {ex}{ANSI_RESET}")
+            #print_stderr(f"{ANSI_RED}WARN: {ex}{ANSI_RESET}")
             continue
         netname = item.get("netname")
         description = item.get("descr")
@@ -359,9 +359,10 @@ def normalize_inetnums(
         )
 
 
-def spinner() -> Iterable[Literal["|", "/", "-", "\\"]]:
+# https://stackoverflow.com/questions/2685435/cooler-ascii-spinners
+def spinner() -> Iterable[str]:
     while 42:
-        yield from "|/-\\"
+        yield from "⣾⣽⣻⢿⡿⣟⣯⣷"
 
 
 async def main(argv: Sequence[str] | None = None) -> None:
