@@ -32,17 +32,25 @@ from dotenv import load_dotenv
 
 __version__ = "0.1.0"
 
-CSI = "\x1b"
-ANSI_RESET = f"{CSI}[m"
-ANSI_BLACK = f"{CSI}[30m"
-ANSI_RED = f"{CSI}[31m"
-ANSI_GREEN = f"{CSI}[32m"
-ANSI_YELLOW = f"{CSI}[33m"
-ANSI_BLUE = f"{CSI}[34m"
-ANSI_MAGENTA = f"{CSI}[35m"
-ANSI_CYAN = f"{CSI}[36m"
-ANSI_WHITE = f"{CSI}[37m"
-ANSI_CLEAR_LINE = f"{CSI}[2K\r"
+
+class ANSI:
+    CSI = "\x1b["
+    RESET = f"{CSI}m"
+    CLEAR_LINE = f"{CSI}2K\r"
+    BLACK = f"{CSI}30m"
+    RED = f"{CSI}31m"
+    GREEN = f"{CSI}32m"
+    YELLOW = f"{CSI}33m"
+    BLUE = f"{CSI}34m"
+    MAGENTA = f"{CSI}35m"
+    CYAN = f"{CSI}36m"
+    WHITE = f"{CSI}37m"
+    ORANGE = YELLOW
+    PURPLE = MAGENTA
+    GREY = WHITE
+    ERROR = WARNING = RED
+    SUCCESS = OK = GREEN
+
 
 CUR_PATH = Path(__file__).parent
 
@@ -227,11 +235,21 @@ def parse_block(curline: str, fp: TextIO) -> dict[str, str]:
     rv = {}
     while curline := curline.strip():
         try:
+            # https://datatracker.ietf.org/doc/html/rfc2622#section-2
             try:
+                #  An RPSL object is textually represented as a list of attribute-value
+                # pairs.  Each attribute-value pair is written on a separate line.  The
+                # attribute name starts at column 0, followed by character ":" and
+                # followed by the value of the attribute.
                 key, value = curline.split(":", 1)
             except ValueError:
+                # Там в базах всякий мусор лежит
                 continue
-            value = value.strip()
+            # An object's description may contain comments.  A comment can be
+            # anywhere in an object's definition, it starts at the first "#"
+            # character on a line and ends at the first end-of-line character.
+            # White space characters can be used to improve readability.
+            value = value.split("#")[0].strip()
             if key in rv:
                 # Правильно бы было загнать все в массив, но пока это излишне
                 rv[key] += " " + value
@@ -320,18 +338,21 @@ def normalize_inetnums(
             )
         # FIXME: ValueError: 24.152.0/22
         except ValueError as ex:
-            # print_stderr(f"{ANSI_RED}WARN: {ex}{ANSI_RESET}")
+            # print_stderr(f"{ANSI.RED}WARN: {ex}{ANSI.RESET}")
             continue
         netname = item.get("netname")
         description = item.get("descr")
         organization = item.get("org")
-        if country := item.get("country"):
-            # fix: "EU # Country is really world wide"
-            country = country.split()[0]
+        country = item.get("country")
         mnt_by = item.get("mnt-by")
-        admin_c = item.get("admin-c")
-        tech_c = item.get("tech-c")
+        # admin_c = item.get("admin-c")
+        # tech_c = item.get("tech-c")
+
+        # Почта админа подсети
         notify = item.get("notify")
+        # Содержит имя базы, но нужно ли оно? - Думаю, что нет, но пусть будет
+        # select string_agg(distinct(source),',') from inetnums;
+        # Ripe, APNiC, 'RIPE'
         source = item.get("source")
         status = item.get("status")
         created, last_modified = (
@@ -350,8 +371,8 @@ def normalize_inetnums(
             organization,
             country,
             mnt_by,
-            admin_c,
-            tech_c,
+            # admin_c,
+            # tech_c,
             notify,
             source,
             status,
@@ -377,23 +398,25 @@ async def main(argv: Sequence[str] | None = None) -> None:
     }
 
     for url, path in database_paths.items():
-        print_stderr(f"{ANSI_YELLOW}downloading {url}{ANSI_RESET}", end="")
+        print_stderr(f"{ANSI.YELLOW}downloading {url}{ANSI.RESET}", end="")
         if path.exists() and args.skip_download_if_exists:
             print_stderr(
-                f"{ANSI_CLEAR_LINE}{ANSI_MAGENTA}already downloaded: {url}{ANSI_RESET}"
+                f"{ANSI.CLEAR_LINE}{ANSI.MAGENTA}already downloaded: {url}{ANSI.RESET}"
             )
             continue
         try:
             download_database(url, path)
             print_stderr(
-                f"{ANSI_CLEAR_LINE}{ANSI_GREEN}downloaded: {url}{ANSI_RESET}"
+                f"{ANSI.CLEAR_LINE}{ANSI.GREEN}downloaded: {url}{ANSI.RESET}"
             )
         except urllib.error.URLError as ex:
             if getattr(ex, "code") != 304:
-                print_stderr(f"{ANSI_CLEAR_LINE}{ANSI_RED}error: {ex}{ANSI_RESET}")
+                print_stderr(
+                    f"{ANSI.CLEAR_LINE}{ANSI.RED}error: {ex}{ANSI.RESET}"
+                )
                 sys.exit(1)
             print_stderr(
-                f"{ANSI_CLEAR_LINE}{ANSI_MAGENTA}resource is not modified: {url}{ANSI_RESET}"
+                f"{ANSI.CLEAR_LINE}{ANSI.MAGENTA}resource is not modified: {url}{ANSI.RESET}"
             )
 
     spin = spinner()
@@ -412,13 +435,15 @@ async def main(argv: Sequence[str] | None = None) -> None:
         if schema_path.exists():
             await con.execute(schema_path.read_text())
 
-        await con.execute("TRUNCATE inetnums")
+        await con.execute(
+            "TRUNCATE inetnums; ALTER SEQUENCE inetnums_id_seq RESTART WITH 1"
+        )
 
-        print_stderr(f"{ANSI_YELLOW}start importing{path}{ANSI_RESET}", end="")
+        print_stderr(f"{ANSI.YELLOW}start importing{path}{ANSI.RESET}", end="")
 
         for path in database_paths.values():
             print_stderr(
-                f"{ANSI_CLEAR_LINE}{ANSI_YELLOW}import {path}{ANSI_RESET}"
+                f"{ANSI.CLEAR_LINE}{ANSI.YELLOW}import {path}{ANSI.RESET}"
             )
             # База большая и вставлять по одной записи очень долго
             for batch in itertools.batched(
@@ -437,8 +462,8 @@ async def main(argv: Sequence[str] | None = None) -> None:
                             "org",
                             "country",
                             "mnt_by",
-                            "admin_c",
-                            "tech_c",
+                            # "admin_c",
+                            # "tech_c",
                             "notify",
                             "source",
                             "status",
@@ -451,12 +476,12 @@ async def main(argv: Sequence[str] | None = None) -> None:
                     assert op == "COPY", op
                     total_records += int(size)
                     print_stderr(
-                        f"{ANSI_CLEAR_LINE}{ANSI_YELLOW}{next(spin)} total records copied: {total_records}{ANSI_RESET}",
+                        f"{ANSI.CLEAR_LINE}{ANSI.YELLOW}{next(spin)} total records copied: {total_records}{ANSI.RESET}",
                         end="",
                     )
         print_stderr()
     total_time += time.monotonic()
-    print_stderr(f"{ANSI_GREEN}finished at {total_time:.3f}s{ANSI_RESET}")
+    print_stderr(f"{ANSI.GREEN}finished at {total_time:.3f}s{ANSI.RESET}")
 
 
 if __name__ == "__main__":

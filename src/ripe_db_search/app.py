@@ -74,7 +74,7 @@ async def add_execution_time_header(
     return response
 
 
-class Inetnum(BaseModel):
+class InetNum(BaseModel):
     first_ip: IPvAnyAddress
     last_ip: IPvAnyAddress
     netname: str | None = None
@@ -82,8 +82,6 @@ class Inetnum(BaseModel):
     country: str | None = None
     org: str | None = None
     mnt_by: str | None = None
-    admin_c: str | None = None
-    tech_c: str | None = None
     notify: str | None = None
     source: str | None = None
     status: str | None = None
@@ -106,7 +104,7 @@ class Inetnum(BaseModel):
 class IPInfo(BaseModel):
     input: str
     ip: str
-    inetnum: Inetnum
+    inetnum: InetNum
 
 
 @app.get("/ipinfo/{addr}", response_model_exclude_none=True)
@@ -129,7 +127,7 @@ async def ipinfo(addr: str) -> IPInfo:
         """,
         ip,
     )
-    return dict(input=addr, ip=ip, inetnum=Inetnum(**record))
+    return dict(input=addr, ip=ip, inetnum=InetNum(**record))
 
 
 # https://docs.pydantic.dev/latest/concepts/models/#generic-models
@@ -157,7 +155,7 @@ class SearchParams(BaseModel):
 
 
 @app.get("/search", response_model_exclude_none=True)
-async def search(s: SearchParams = Depends()) -> Pagination[Inetnum]:
+async def search(s: SearchParams = Depends()) -> Pagination[InetNum]:
     # Тут мы одним запросом возвращаем записи с их общим количеством, но стоит
     # только добавить order by как все начинает тормозить...
     # TODO: пофиксить
@@ -177,5 +175,5 @@ async def search(s: SearchParams = Depends()) -> Pagination[Inetnum]:
         "page": s.page,
         "per_page": s.per_page,
         "total": records[0]["total_count"] if records else 0,
-        "results": [Inetnum(**x) for x in records],
+        "results": [InetNum(**x) for x in records],
     }

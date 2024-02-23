@@ -1,41 +1,44 @@
 ## Описание
 
-Предоставляет API для поиска подсетей в базе RIPE DB.
+Предоставляет API для поиска сетей в базе RIPE DB.
 
-Схожий функционал предоставляют сервисы типа 2ip, но:
+Да, существуют сервисы типа 2ip, но:
 
-* Там существуют ограничения на количество запросов
-* Многие сервисы работают под Cloudflare, который часто блокирует запросы
+* Там есть ограничения на количество запросов
+* Многие работают под Cloudflare, который часто блокирует запросы
 * Они ведут логи
 
 ## Установка и требования
 
-Установите системные зависимости:
+Необходимо где-то 4.5 гигабайта свободного места.
+
+Cистемные зависимости:
 
 ```bash
 yay -S docker{,-compose}
 ```
 
-База великовата:
+Место, занимаемое базой:
 
 ```bash
 ❯ docker compose exec postgres psql -U ripe_db
 psql (16.2)
 Type "help" for help.
 
-ripe_db=# \l+ ripe_db
-                                                                     List of databases
-  Name   |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules | Access privileges |  Size   | Tablespace | Description 
----------+---------+----------+-----------------+------------+------------+------------+-----------+-------------------+---------+------------+-------------
- ripe_db | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                   | 3349 MB | pg_default | 
-(1 row)
+ripe_db=# \l+
+                                                                                       List of databases
+   Name    |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |  Access privileges  |  Size   | Tablespace |                Description
+-----------+---------+----------+-----------------+------------+------------+------------+-----------+---------------------+---------+------------+--------------------------------------------
+ postgres  | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                     | 7508 kB | pg_default | default administrative connection database
+ ripe_db   | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                     | 3268 MB | pg_default |
+ template0 | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/ripe_db         +| 7353 kB | pg_default | unmodifiable empty database
+           |         |          |                 |            |            |            |           | ripe_db=CTc/ripe_db |         |            |
+ template1 | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/ripe_db         +| 7572 kB | pg_default | default template for new databases
+           |         |          |                 |            |            |            |           | ripe_db=CTc/ripe_db |         |            |
+(4 rows)
 
 ripe_db=#
 ```
-
-Во всем виноват полнотекстовый поиск для которого приходится фактически дублировать данные (включенные колонки). 
-
-+ еще требуется около 1 гигабайта для контейнеров. Итого нужно: 4.5 GiB свободного места.
 
 ## Запуск
 
@@ -51,12 +54,26 @@ $ docker compose up -d
 В первый раз нужно выкачать и импортировать базу:
 
 ```bash
-docker compose run app python import_ripe_db.py
+❯ docker compose run app python import_ripe_db.py
+[+] Creating 1/0
+ ✔ Container postgres  Running                                                                             0.0s
+downloaded: https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz
+downloaded: https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz
+resource is not modified: https://ftp.afrinic.net/pub/dbase/afrinic.db.gz
+downloaded: https://ftp.apnic.net/pub/apnic/whois/apnic.db.inetnum.gz
+downloaded: https://ftp.apnic.net/pub/apnic/whois/apnic.db.inet6num.gz
+downloaded: https://ftp.arin.net/pub/rr/arin.db.gz
+resource is not modified: https://ftp.lacnic.net/lacnic/dbase/lacnic.db.gz
+import /code/ripe/ripe.db.inetnum.gz
+import /code/ripe/ripe.db.inet6num.gz
+import /code/ripe/afrinic.db.gz
+import /code/ripe/apnic.db.inetnum.gz
+import /code/ripe/apnic.db.inet6num.gz
+import /code/ripe/arin.db.gz
+import /code/ripe/lacnic.db.gz
+⠟ total records copied: 6974065
+finished at 503.597s
 ```
-
-![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/5e32873b-4fbe-426e-9e94-654eca008025)
-
-Какой охуенный спиннер!
 
 Эту операцию нужно по мере необходимости повторять.
 
@@ -69,106 +86,70 @@ docker compose run app python import_ripe_db.py
 ```bash
 ❯ http :9080/ipinfo/ya.ru
 HTTP/1.1 200 OK
-content-length: 418
+content-length: 380
 content-type: application/json
-date: Fri, 23 Feb 2024 00:36:50 GMT
+date: Fri, 23 Feb 2024 19:45:59 GMT
 server: uvicorn
-x-execution-time: 0.025262929004384205
+x-execution-time: 0.01884462800808251
 
 {
     "inetnum": {
-        "admin_c": "DUMY-RIPE",
         "cidrs": [
-            "77.88.55.0/24"
+            "5.255.255.0/24"
         ],
         "country": "RU",
-        "created": "2012-10-12T12:22:03",
+        "created": "2013-04-25T13:29:22",
         "descr": "Yandex enterprise network",
-        "first_ip": "77.88.55.0",
-        "last_ip": "77.88.55.255",
-        "last_modified": "2022-04-05T15:29:50",
+        "first_ip": "5.255.255.0",
+        "last_ip": "5.255.255.255",
+        "last_modified": "2022-04-05T15:29:03",
         "mnt_by": "YANDEX-MNT",
-        "netname": "YANDEX-77-88-55",
+        "netname": "YANDEX-5-255-255",
         "num_addresses": 256,
         "org": "ORG-YA1-RIPE",
         "source": "RIPE",
-        "status": "ASSIGNED PA",
-        "tech_c": "DUMY-RIPE"
+        "status": "ASSIGNED PA"
     },
     "input": "ya.ru",
-    "ip": "77.88.55.242"
+    "ip": "5.255.255.242"
 }
 ```
 
-Поиск подсетей по полям netname, descr, org, country и mnt_by:
+Поиск подсетей по полям `netname`, `descr`, `org`, `country` и `mnt_by`:
 
 ```bash
-❯ http :9080/search q==sber per_page==3 p==5
+❯ http :9080/search q=="sberbank" per_page==1
 HTTP/1.1 200 OK
-content-length: 985
+content-length: 461
 content-type: application/json
-date: Fri, 23 Feb 2024 02:23:39 GMT
+date: Fri, 23 Feb 2024 19:46:53 GMT
 server: uvicorn
-x-execution-time: 0.01588630597689189
+x-execution-time: 0.002507539000362158
 
 {
-    "page": 5,
-    "pages": 12,
-    "per_page": 3,
+    "page": 1,
+    "pages": 218,
+    "per_page": 1,
     "results": [
         {
-            "admin_c": "DUMY-RIPE",
             "cidrs": [
-                "78.37.87.8/29"
+                "194.186.207.0/24"
             ],
             "country": "RU",
-            "created": "2016-09-02T12:50:26",
-            "first_ip": "78.37.87.8",
-            "last_ip": "78.37.87.15",
-            "last_modified": "2016-09-02T12:50:26",
-            "mnt_by": "AS8997-MNT",
-            "netname": "RU-SBER-1302",
-            "num_addresses": 8,
+            "created": "1970-01-01T00:00:00",
+            "descr": "Savings Bank of the Russian Federation (Sberbank) Vavilova str, 19 Moscow Russia",
+            "first_ip": "194.186.207.0",
+            "last_ip": "194.186.207.255",
+            "last_modified": "2021-11-16T11:05:32",
+            "mnt_by": "AS3216-MNT",
+            "netname": "RU-SOVINTEL-SBRF-RU",
+            "notify": "noc@sovintel.ru",
+            "num_addresses": 256,
             "source": "RIPE",
-            "status": "ASSIGNED PA",
-            "tech_c": "DUMY-RIPE"
-        },
-        {
-            "admin_c": "DUMY-RIPE",
-            "cidrs": [
-                "78.37.87.16/29"
-            ],
-            "country": "RU",
-            "created": "2016-09-02T12:52:59",
-            "first_ip": "78.37.87.16",
-            "last_ip": "78.37.87.23",
-            "last_modified": "2016-09-02T12:52:59",
-            "mnt_by": "AS8997-MNT",
-            "netname": "RU-SBER-1235",
-            "num_addresses": 8,
-            "source": "RIPE",
-            "status": "ASSIGNED PA",
-            "tech_c": "DUMY-RIPE"
-        },
-        {
-            "admin_c": "DUMY-RIPE",
-            "cidrs": [
-                "78.37.87.24/29"
-            ],
-            "country": "RU",
-            "created": "2016-09-02T12:55:03",
-            "first_ip": "78.37.87.24",
-            "last_ip": "78.37.87.31",
-            "last_modified": "2016-09-02T12:55:03",
-            "mnt_by": "AS8997-MNT",
-            "netname": "RU-SBER-1287",
-            "num_addresses": 8,
-            "source": "RIPE",
-            "status": "ASSIGNED PA",
-            "tech_c": "DUMY-RIPE"
+            "status": "ASSIGNED PA"
         }
     ],
-    "total": 33
+    "total": 217
 }
 ```
 

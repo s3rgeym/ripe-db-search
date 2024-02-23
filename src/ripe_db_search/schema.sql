@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS inetnums (
   org text,
   country text,
   mnt_by text,
-  admin_c text,
-  tech_c text,
+  -- admin_c text,
+  -- tech_c text,
   notify text,
   source text,
   status character varying(255),
@@ -16,8 +16,9 @@ CREATE TABLE IF NOT EXISTS inetnums (
   last_modified timestamp without time zone
 );
 -- DROP INDEX IF EXISTS inetnums_range_ip_idx;
-CREATE INDEX IF NOT EXISTS inetnums_range_ip_idx ON inetnums (first_ip DESC, last_ip ASC);
-CREATE INDEX IF NOT EXISTS inetnums_status_idx ON inetnums (status);
+CREATE INDEX IF NOT EXISTS inetnums_range_ip_idx ON inetnums(first_ip DESC, last_ip ASC);
+CREATE INDEX IF NOT EXISTS inetnums_source_idx ON inetnums(lower(source));
+CREATE INDEX IF NOT EXISTS inetnums_status_idx ON inetnums(lower(status));
 -- Для ускорения используется полнотекстовый поиск
 -- https://github.com/reginalin/postgres-full-text-search
 -- select * from inetnums where search_vector @@ to_tsquery('sber')
@@ -29,3 +30,6 @@ ADD COLUMN IF NOT EXISTS search_vector tsvector GENERATED ALWAYS AS (
     )
   ) STORED;
 CREATE INDEX IF NOT EXISTS inetnums_search_vector_idx ON inetnums USING gin(search_vector);
+-- бесполезные колонки
+ALTER TABLE inetnums DROP COLUMN IF EXISTS admin_c;
+ALTER TABLE inetnums DROP COLUMN IF EXISTS tech_c;

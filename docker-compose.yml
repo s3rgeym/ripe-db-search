@@ -8,18 +8,21 @@ services:
     environment:
       POSTGRES_USER: "$DB_USER"
       POSTGRES_PASSWORD: "$DB_PASS"
-    restart: unless-stopped
     volumes:
       - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     env_file: .env
+    depends_on:
+      - postgres
     volumes:
       - pgadmin:/var/lib/pgadmin
     ports:
       - "5050:80"
+    restart: unless-stopped
 
   app:
     image: local/ripe-db-search
@@ -30,8 +33,10 @@ services:
       - "9080:8000"
     volumes:
       - .:/code
+    depends_on:
+      - postgres
+    restart: unless-stopped
 
 volumes:
   pgdata:
   pgadmin:
-  ripe:
