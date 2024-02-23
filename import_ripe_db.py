@@ -390,7 +390,7 @@ async def main(argv: Sequence[str] | None = None) -> None:
             )
         except urllib.error.URLError as ex:
             if getattr(ex, "code") != 304:
-                print_stderr(f"{ANSI_RED}ERR: {ex}{ANSI_RESET}")
+                print_stderr(f"{ANSI_CLEAR_LINE}{ANSI_RED}error: {ex}{ANSI_RESET}")
                 sys.exit(1)
             print_stderr(
                 f"{ANSI_CLEAR_LINE}{ANSI_MAGENTA}resource is not modified: {url}{ANSI_RESET}"
