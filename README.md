@@ -30,7 +30,11 @@ $ docker compose up -d
 В первый раз нужно выкачать и импортировать базу:
 
 ```bash
-$ docker compose run app python import_ripe_db.py
+❯ docker compose run app python import_ripe_db.py
+downloading...
+downloaded: https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz
+downloaded: https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz
+...
 ```
 
 Эту операцию нужно по мере необходимости повторять.
