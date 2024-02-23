@@ -59,11 +59,11 @@ $ docker compose up -d
  ✔ Container postgres  Running                                                                             0.0s
 downloaded: https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz
 downloaded: https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz
-resource is not modified: https://ftp.afrinic.net/pub/dbase/afrinic.db.gz
+downloaded: https://ftp.afrinic.net/pub/dbase/afrinic.db.gz
 downloaded: https://ftp.apnic.net/pub/apnic/whois/apnic.db.inetnum.gz
 downloaded: https://ftp.apnic.net/pub/apnic/whois/apnic.db.inet6num.gz
 downloaded: https://ftp.arin.net/pub/rr/arin.db.gz
-resource is not modified: https://ftp.lacnic.net/lacnic/dbase/lacnic.db.gz
+downloaded: https://ftp.lacnic.net/lacnic/dbase/lacnic.db.gz
 import /code/ripe/ripe.db.inetnum.gz
 import /code/ripe/ripe.db.inet6num.gz
 import /code/ripe/afrinic.db.gz
