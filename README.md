@@ -54,7 +54,7 @@ $ docker compose up -d
 docker compose run app python import_ripe_db.py
 ```
 
-![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/21d3f94d-c73b-425f-8698-dfc9a20cbf2d)
+![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/ab16d725-aaab-43ca-acfa-9b17e3cbc221)
 
 Какой охуенный спиннер!
 
