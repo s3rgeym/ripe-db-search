@@ -79,6 +79,8 @@ x-execution-time: 0.025262929004384205
 }
 ```
 
+> Добавление mnt_by в search_vector почему-то очень сильно замедляет поиск по базе
+
 Поиск подсетей по полям netname, descr, org, country и mnt_by:
 
 ```bash
