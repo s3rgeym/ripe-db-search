@@ -32,16 +32,19 @@ from dotenv import load_dotenv
 
 __version__ = "0.1.0"
 
-CLEAR = "\x1b[m"
-BLACK = "\x1b[30m"
-RED = "\x1b[31m"
-GREEN = "\x1b[32m"
-YELLOW = "\x1b[33m"
-BLUE = "\x1b[34m"
-MAGENTA = "\x1b[35m"
-CYAN = "\x1b[36m"
-WHITE = "\x1b[37m"
-CLEAR_LINE = "\x1b[2K\r"
+CSI = "\x1b"
+ANSI_RESET = f"{CSI}[m"
+ANSI_BLACK = f"{CSI}[30m"
+ANSI_RED = f"{CSI}[31m"
+ANSI_GREEN = f"{CSI}[32m"
+ANSI_YELLOW = f"{CSI}[33m"
+ANSI_BLUE = f"{CSI}[34m"
+ANSI_MAGENTA = f"{CSI}[35m"
+ANSI_CYAN = f"{CSI}[36m"
+ANSI_WHITE = f"{CSI}[37m"
+ANSI_CLEAR_LINE = f"{CSI}[2K\r"
+
+CUR_PATH = Path(__file__).parent
 
 # Latest Chrome UA 18/02/2024
 USER_AGENT = (
@@ -80,6 +83,7 @@ class NameSpace(argparse.Namespace):
     password: str | None
     dbname: str | None
     batch_size: int
+    skip_download_if_exists: bool
 
 
 def parse_args(
@@ -98,8 +102,14 @@ def parse_args(
         "-b",
         "--batch-size",
         type=int,
-        default=8192,
+        default=10240,
         help="batch size for inserting records into the database",
+    )
+    parser.add_argument(
+        "--skip-download-if-exists",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="skip download if file exists",
     )
     return parser, parser.parse_args(argv, namespace=NameSpace())
 
@@ -208,6 +218,7 @@ def download_database(
     req = Request(url, headers=headers)
 
     with urlopen(req) as resp:
+        path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w+b") as fp:
             shutil.copyfileobj(resp, fp)
 
@@ -238,8 +249,8 @@ def parse_database(path: Path) -> Iterable[dict]:
             if line.startswith(("inetnum", "inet6num")):
                 block = parse_block(line, fp)
                 # All the legacy objects will have the status ‘LEGACY'.
-                if block.get("status") == "LEGACY":
-                    continue
+                # if block.get("status") == "LEGACY":
+                #     continue
                 yield block
 
 
@@ -298,7 +309,7 @@ def get_first_and_last_ips(
     raise ValueError(s)
 
 
-def normalize_batch(
+def normalize_inetnums(
     batch: tuple[InetnumDict | Ine6tnumDict, ...]
 ) -> Iterable[tuple]:
     for item in batch:
@@ -308,13 +319,20 @@ def normalize_batch(
             )
         # FIXME: ValueError: 24.152.0/22
         except ValueError as ex:
+            print_stderr(f"{ANSI_RED}WARN: {ex}{ANSI_RESET}")
             continue
         netname = item.get("netname")
-        descr = item.get("descr")
-        org = item.get("org")
+        description = item.get("descr")
+        organization = item.get("org")
         if country := item.get("country"):
             # fix: "EU # Country is really world wide"
-            country, *_ = country.split()
+            country = country.split()[0]
+        mnt_by = item.get("mnt-by")
+        admin_c = item.get("admin-c")
+        tech_c = item.get("tech-c")
+        notify = item.get("notify")
+        source = item.get("source")
+        status = item.get("status")
         created, last_modified = (
             (
                 datetime.fromisoformat(item[i]).replace(tzinfo=None)
@@ -327,9 +345,15 @@ def normalize_batch(
             first_ip,
             last_ip,
             netname,
-            descr,
-            org,
+            description,
+            organization,
             country,
+            mnt_by,
+            admin_c,
+            tech_c,
+            notify,
+            source,
+            status,
             created,
             last_modified,
         )
@@ -348,23 +372,37 @@ async def main(argv: Sequence[str] | None = None) -> None:
         url: DATABASE_DIR_PATH / filename_from_url(url) for url in DATABASE_URLS
     }
 
-    print_stderr(f"{YELLOW}downloading...{CLEAR}")
+    print_stderr(f"{ANSI_YELLOW}downloading...{ANSI_RESET}")
     for url, path in database_paths.items():
+        if path.exists() and args.skip_download_if_exists:
+            print_stderr(f"{ANSI_MAGENTA}already downloaded: {url}{ANSI_RESET}")
+            continue
         try:
             download_database(url, path)
-            print_stderr(f"{GREEN}downloaded: {url}{CLEAR}")
+            print_stderr(f"{ANSI_GREEN}downloaded: {url}{ANSI_RESET}")
         except urllib.error.URLError as ex:
             if getattr(ex, "code") != 304:
-                print_stderr(f"{RED}{ex}{CLEAR}")
+                print_stderr(f"{ANSI_RED}ERR: {ex}{ANSI_RESET}")
                 sys.exit(1)
-            print_stderr(f"{MAGENTA}resource is not modified: {url}{CLEAR}")
+            print_stderr(
+                f"{ANSI_MAGENTA}resource is not modified: {url}{ANSI_RESET}"
+            )
 
     spin = spinner()
     total_records = 0
     async with get_connection(args) as con:
+        schema_path = CUR_PATH / "src" / "ripe_db_search" / "schema.sql"
+
+        if schema_path.exists():
+            await con.execute(schema_path.read_text())
+
         await con.execute("TRUNCATE inetnums")
+
         for path in database_paths.values():
-            print_stderr(f"{CLEAR_LINE}{YELLOW}import {path}{CLEAR}", end="")
+            print_stderr(
+                f"{ANSI_CLEAR_LINE}{ANSI_YELLOW}import {path}{ANSI_RESET}",
+                end="",
+            )
             # База большая и вставлять по одной записи очень долго
             for batch in itertools.batched(
                 parse_database(path),
@@ -373,7 +411,7 @@ async def main(argv: Sequence[str] | None = None) -> None:
                 async with con.transaction():
                     status = await con.copy_records_to_table(
                         "inetnums",
-                        records=normalize_batch(batch),
+                        records=normalize_inetnums(batch),
                         columns=(
                             "first_ip",
                             "last_ip",
@@ -381,6 +419,12 @@ async def main(argv: Sequence[str] | None = None) -> None:
                             "descr",
                             "org",
                             "country",
+                            "mnt_by",
+                            "admin_c",
+                            "tech_c",
+                            "notify",
+                            "source",
+                            "status",
                             "created",
                             "last_modified",
                         ),
@@ -390,12 +434,12 @@ async def main(argv: Sequence[str] | None = None) -> None:
                     assert op == "COPY", op
                     total_records += int(size)
                     print_stderr(
-                        f"{CLEAR_LINE}{YELLOW}{next(spin)} total records copied: {total_records}{CLEAR}",
+                        f"{ANSI_CLEAR_LINE}{ANSI_YELLOW}{next(spin)} total records copied: {total_records}{ANSI_RESET}",
                         end="",
                     )
         print_stderr()
     total_time += time.monotonic()
-    print_stderr(f"{GREEN}finished at {total_time:.3f}s{CLEAR}")
+    print_stderr(f"{ANSI_GREEN}finished at {total_time:.3f}s{ANSI_RESET}")
 
 
 if __name__ == "__main__":

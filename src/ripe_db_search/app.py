@@ -1,5 +1,6 @@
 import asyncio
 import ipaddress
+import logging
 import socket
 import time
 from contextlib import asynccontextmanager
@@ -14,17 +15,18 @@ from typing import (
     Literal,
     TypeVar,
 )
-import logging
+
 import asyncpg
-from fastapi import FastAPI, Request, Response, Depends
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import HTTPException
 from pydantic import (
     BaseModel,
+    Field,
     IPvAnyAddress,
     IPvAnyNetwork,
     computed_field,
-    Field,
 )
+
 from .config import settings
 
 LOG = logging.getLogger("uvicorn.error")
@@ -79,6 +81,12 @@ class Inetnum(BaseModel):
     descr: str | None = None
     country: str | None = None
     org: str | None = None
+    mnt_by: str | None = None
+    admin_c: str | None = None
+    tech_c: str | None = None
+    notify: str | None = None
+    source: str | None = None
+    status: str | None = None
     created: datetime | None = None
     last_modified: datetime | None = None
 
@@ -131,9 +139,13 @@ T = TypeVar("T")
 class Pagination(BaseModel, Generic[T]):
     page: int
     per_page: int
-    pages: int
     total: int
     results: list[T]
+
+    @computed_field
+    @property
+    def pages(self) -> int:
+        return self.total // self.per_page + 1
 
 
 class SearchParams(BaseModel):
@@ -159,11 +171,9 @@ async def search(s: SearchParams = Depends()) -> Pagination[Inetnum]:
             (s.page - 1) * s.per_page,
         )
     )
-    total = records[0]["total_count"] if records else 0
     return {
         "page": s.page,
         "per_page": s.per_page,
-        "pages": total // s.per_page + 1,
-        "total": total,
+        "total": records[0]["total_count"] if records else 0,
         "results": [Inetnum(**x) for x in records],
     }
