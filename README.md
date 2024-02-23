@@ -79,18 +79,16 @@ x-execution-time: 0.025262929004384205
 }
 ```
 
-> Добавление mnt_by в search_vector почему-то очень сильно замедляет поиск по базе
-
 Поиск подсетей по полям netname, descr, org, country и mnt_by:
 
 ```bash
 ❯ http :9080/search q==sber per_page==3 p==5
 HTTP/1.1 200 OK
-content-length: 1089
+content-length: 985
 content-type: application/json
-date: Fri, 23 Feb 2024 00:39:12 GMT
+date: Fri, 23 Feb 2024 02:23:39 GMT
 server: uvicorn
-x-execution-time: 3.305883872002596
+x-execution-time: 0.01588630597689189
 
 {
     "page": 5,
@@ -100,36 +98,15 @@ x-execution-time: 3.305883872002596
         {
             "admin_c": "DUMY-RIPE",
             "cidrs": [
-                "188.246.76.84/30"
-            ],
-            "country": "BA",
-            "created": "2017-09-01T11:10:52",
-            "descr": "Sber",
-            "first_ip": "188.246.76.84",
-            "last_ip": "188.246.76.87",
-            "last_modified": "2017-09-01T11:10:52",
-            "mnt_by": "BLICNET-MNT",
-            "netname": "Blicnet",
-            "notify": "ripe@blic.net",
-            "num_addresses": 4,
-            "source": "RIPE",
-            "status": "ASSIGNED PA",
-            "tech_c": "DUMY-RIPE"
-        },
-        {
-            "admin_c": "DUMY-RIPE",
-            "cidrs": [
-                "78.37.87.64/29"
+                "78.37.87.8/29"
             ],
             "country": "RU",
-            "created": "2016-09-15T11:34:01",
-            "descr": "PAO Sberbank, banking",
-            "first_ip": "78.37.87.64",
-            "last_ip": "78.37.87.71",
-            "last_modified": "2016-09-15T11:34:01",
+            "created": "2016-09-02T12:50:26",
+            "first_ip": "78.37.87.8",
+            "last_ip": "78.37.87.15",
+            "last_modified": "2016-09-02T12:50:26",
             "mnt_by": "AS8997-MNT",
-            "netname": "RU-SBER-8626",
-            "notify": "autom@baltnet.ru",
+            "netname": "RU-SBER-1302",
             "num_addresses": 8,
             "source": "RIPE",
             "status": "ASSIGNED PA",
@@ -138,15 +115,32 @@ x-execution-time: 3.305883872002596
         {
             "admin_c": "DUMY-RIPE",
             "cidrs": [
-                "78.37.87.56/29"
+                "78.37.87.16/29"
             ],
             "country": "RU",
-            "created": "2016-09-02T13:06:26",
-            "first_ip": "78.37.87.56",
-            "last_ip": "78.37.87.63",
-            "last_modified": "2016-09-02T13:06:26",
+            "created": "2016-09-02T12:52:59",
+            "first_ip": "78.37.87.16",
+            "last_ip": "78.37.87.23",
+            "last_modified": "2016-09-02T12:52:59",
             "mnt_by": "AS8997-MNT",
-            "netname": "RU-SBER-7382",
+            "netname": "RU-SBER-1235",
+            "num_addresses": 8,
+            "source": "RIPE",
+            "status": "ASSIGNED PA",
+            "tech_c": "DUMY-RIPE"
+        },
+        {
+            "admin_c": "DUMY-RIPE",
+            "cidrs": [
+                "78.37.87.24/29"
+            ],
+            "country": "RU",
+            "created": "2016-09-02T12:55:03",
+            "first_ip": "78.37.87.24",
+            "last_ip": "78.37.87.31",
+            "last_modified": "2016-09-02T12:55:03",
+            "mnt_by": "AS8997-MNT",
+            "netname": "RU-SBER-1287",
             "num_addresses": 8,
             "source": "RIPE",
             "status": "ASSIGNED PA",
@@ -156,6 +150,8 @@ x-execution-time: 3.305883872002596
     "total": 33
 }
 ```
+
+Параметр `q` поддерживает [специальные операторы](https://www.postgresql.org/docs/current/datatype-textsearch.html#DATATYPE-TSQUERY).
 
 > Чтобы искать только по стране добавьте вокруг кода страны пробелы, например, ` ru `
 

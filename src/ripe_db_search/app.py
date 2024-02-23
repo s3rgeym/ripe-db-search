@@ -153,17 +153,19 @@ class SearchParams(BaseModel):
     page: int = Field(1, alias="p", ge=1)
     # приводит к ошибке
     # per_page: Literal[10, 25, 50, 100, 250, 500] = 25
-    per_page: int = Field(25, ge=1, le=100)
+    per_page: int = Field(25, ge=1, le=500)
 
 
 @app.get("/search", response_model_exclude_none=True)
 async def search(s: SearchParams = Depends()) -> Pagination[Inetnum]:
+    # Тут мы одним запросом возвращаем записи с их общим количеством, но стоит
+    # только добавить order by как все начинает тормозить...
+    # TODO: пофиксить
     records = list(
         await app.pool.fetch(
             """
             select *, count(*) over() as total_count from inetnums
-                where search_vector @@ to_tsquery($1)
-                order by id desc
+                where search_vector @@ websearch_to_tsquery($1)
                 limit $2 offset $3
             """,
             s.q,

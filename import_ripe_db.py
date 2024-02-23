@@ -102,7 +102,7 @@ def parse_args(
         "-b",
         "--batch-size",
         type=int,
-        default=10240,
+        default=8192,
         help="batch size for inserting records into the database",
     )
     parser.add_argument(
