@@ -180,6 +180,8 @@ x-execution-time: 0.01588630597689189
 
 * http://localhost:9080/docs
 
+![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/7e9c00da-8a28-42b9-8f2a-209ff5ce7c83)
+
 Используйте `jq` для обработки результатов.
 
 ## PGAdmin
