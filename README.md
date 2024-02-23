@@ -152,8 +152,6 @@ x-execution-time: 0.002507539000362158
 
 Параметр `q` поддерживает [специальные операторы](https://www.postgresql.org/docs/current/datatype-textsearch.html#DATATYPE-TSQUERY).
 
-> Чтобы искать только по стране добавьте вокруг кода страны пробелы, например, ` ru `
-
 Локальная документация + песочница для выполнения запросов:
 
 * http://localhost:9080/docs
