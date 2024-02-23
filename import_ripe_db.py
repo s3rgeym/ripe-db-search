@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-# @link https://habr.com/ru/companies/Linx/articles/526508/
+# https://habr.com/ru/companies/Linx/articles/526508/
+# https://habr.com/ru/articles/554458/
 import argparse
 import asyncio
 import functools
