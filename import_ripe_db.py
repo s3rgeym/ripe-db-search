@@ -231,9 +231,10 @@ def parse_block(curline: str, fp: TextIO) -> dict[str, str]:
                 key, value = curline.split(":", 1)
             except ValueError:
                 continue
-            value = value.lstrip()
+            value = value.strip()
             if key in rv:
-                rv[key] += "\n" + value
+                # Правильно бы было загнать все в массив, но пока это излишне
+                rv[key] += " " + value
             else:
                 rv[key] = value
         finally:
@@ -375,36 +376,49 @@ async def main(argv: Sequence[str] | None = None) -> None:
         url: DATABASE_DIR_PATH / filename_from_url(url) for url in DATABASE_URLS
     }
 
-    print_stderr(f"{ANSI_YELLOW}downloading...{ANSI_RESET}")
     for url, path in database_paths.items():
+        print_stderr(f"{ANSI_YELLOW}downloading {url}{ANSI_RESET}", end="")
         if path.exists() and args.skip_download_if_exists:
-            print_stderr(f"{ANSI_MAGENTA}already downloaded: {url}{ANSI_RESET}")
+            print_stderr(
+                f"{ANSI_CLEAR_LINE}{ANSI_MAGENTA}already downloaded: {url}{ANSI_RESET}"
+            )
             continue
         try:
             download_database(url, path)
-            print_stderr(f"{ANSI_GREEN}downloaded: {url}{ANSI_RESET}")
+            print_stderr(
+                f"{ANSI_CLEAR_LINE}{ANSI_GREEN}downloaded: {url}{ANSI_RESET}"
+            )
         except urllib.error.URLError as ex:
             if getattr(ex, "code") != 304:
                 print_stderr(f"{ANSI_RED}ERR: {ex}{ANSI_RESET}")
                 sys.exit(1)
             print_stderr(
-                f"{ANSI_MAGENTA}resource is not modified: {url}{ANSI_RESET}"
+                f"{ANSI_CLEAR_LINE}{ANSI_MAGENTA}resource is not modified: {url}{ANSI_RESET}"
             )
 
     spin = spinner()
     total_records = 0
     async with get_connection(args) as con:
-        schema_path = CUR_PATH / "src" / "ripe_db_search" / "schema.sql"
+        # try:
+        #     import ripe_db_search
+
+        #     schema_path = Path(ripe_db_search.__file__).parent
+        # except ImportError:
+        #     schema_path = CUR_PATH / "src" / "ripe_db_search"
+
+        schema_path = CUR_PATH / "src" / "ripe_db_search"
+        schema_path /= "schema.sql"
 
         if schema_path.exists():
             await con.execute(schema_path.read_text())
 
         await con.execute("TRUNCATE inetnums")
 
+        print_stderr(f"{ANSI_YELLOW}start importing{path}{ANSI_RESET}", end="")
+
         for path in database_paths.values():
             print_stderr(
-                f"{ANSI_CLEAR_LINE}{ANSI_YELLOW}import {path}{ANSI_RESET}",
-                end="",
+                f"{ANSI_CLEAR_LINE}{ANSI_YELLOW}import {path}{ANSI_RESET}"
             )
             # База большая и вставлять по одной записи очень долго
             for batch in itertools.batched(
