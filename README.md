@@ -8,13 +8,34 @@
 * Многие сервисы работают под Cloudflare, который часто блокирует запросы
 * Они ведут логи
 
-## Установка
+## Установка и требования
 
 Установите системные зависимости:
 
 ```bash
 yay -S docker{,-compose}
 ```
+
+База великовата:
+
+```bash
+❯ docker compose exec postgres psql -U ripe_db
+psql (16.2)
+Type "help" for help.
+
+ripe_db=# \l+ ripe_db
+                                                                     List of databases
+  Name   |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules | Access privileges |  Size   | Tablespace | Description 
+---------+---------+----------+-----------------+------------+------------+------------+-----------+-------------------+---------+------------+-------------
+ ripe_db | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                   | 3349 MB | pg_default | 
+(1 row)
+
+ripe_db=#
+```
+
+Во всем виноват полнотекстовый поиск для которого приходится фактически дублировать данные (включенные колонки). 
+
++ еще требуется около 1 гигабайта для контейнеров. Итого нужно: 4.5 GiB свободного места.
 
 ## Запуск
 
@@ -161,32 +182,13 @@ x-execution-time: 0.01588630597689189
 
 Используйте `jq` для обработки результатов.
 
-## Postgres
+## PGAdmin
 
 Управление базой через веб-интерфейс:
 
 * Перейдите по адресу http://localhost:5050/
 * Для логина используйте email `pgadmin4@pgadmin.org` и пароль `pgadmin4`, сохраните их в браузере
 * Добавьте сервер, указав в качестве хоста `postgres`, пользователя и базы `ripe_db` и пароля `ripe_pass`
-
-База великовата:
-
-```bash
-❯ docker compose exec postgres psql -U ripe_db
-psql (16.2)
-Type "help" for help.
-
-ripe_db=# \l+ ripe_db
-                                                                     List of databases
-  Name   |  Owner  | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules | Access privileges |  Size   | Tablespace | Description 
----------+---------+----------+-----------------+------------+------------+------------+-----------+-------------------+---------+------------+-------------
- ripe_db | ripe_db | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |                   | 3349 MB | pg_default | 
-(1 row)
-
-ripe_db=#
-```
-
-Во всем виноват полнотекстовый поиск для которого приходится фактически дублировать данные (включенные колонки).
 
 ## Разработка
 
