@@ -192,6 +192,8 @@ x-execution-time: 0.01588630597689189
 * Для логина используйте email `pgadmin4@pgadmin.org` и пароль `pgadmin4`, сохраните их в браузере
 * Добавьте сервер, указав в качестве хоста `postgres`, пользователя и базы `ripe_db` и пароля `ripe_pass`
 
+![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/3b99a667-33da-4a61-a48e-e4d3fb422222)
+
 ## Разработка
 
 Тут в принципе описан весь процесс разработки через Dev Containers с использованием Compose.
