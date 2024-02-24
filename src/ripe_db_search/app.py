@@ -131,7 +131,7 @@ async def ipinfo(addr: str) -> IPInfo:
     # В базе данных RIPE много записей с пересекающимися диапазонами, мы ищем наименьший диапазон. Если ничего подходящего не будет найдено, то вернет что-то типа 0.0.0.0-255.255.255.255
     record = await app.pool.fetchrow(
         """
-        select * from inetnums
+            select * from inetnums
             where $1 between first_ip and last_ip
             order by first_ip desc, last_ip asc
             limit 1
@@ -168,13 +168,14 @@ class SearchParams(BaseModel):
 async def search(s: SearchParams = Depends()) -> Pagination[InetNum]:
     # Тут мы одним запросом возвращаем записи с их общим количеством, но стоит
     # только добавить order by как все начинает тормозить...
-    # TODO: пофиксить
+    # TODO: учесть это при реализации сортировки по полям
     records = list(
         await app.pool.fetch(
             """
-            select *, count(*) over() as total_count from inetnums
+                select *, count(*) over() as total_count from inetnums
                 where search_vector @@ websearch_to_tsquery($1)
-                limit $2 offset $3
+                limit $2 
+                offset $3
             """,
             s.q,
             s.per_page,
