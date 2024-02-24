@@ -1,6 +1,6 @@
 ## Описание
 
-Предоставляет API для поиска сетей в базе RIPE DB.
+Предоставляет API для поиска сетей в базе RIPE DB. Еще понятнее: я взял распарсил базу RIPE, организации-монополиста (осмуждаю) с штаб-квартирой в Пидерландах (их тоже осуждаю ибо нехуй), которая распределяет блоки ip-адресов между всякими хостинг-провайдерами и прочим околор-IT, и прикрутил к ней поисковик.
 
 Да, существуют сервисы типа 2ip, но:
 
@@ -150,7 +150,21 @@ x-execution-time: 0.002507539000362158
 }
 ```
 
-Параметр `q` поддерживает [специальные операторы](https://www.postgresql.org/docs/current/datatype-textsearch.html#DATATYPE-TSQUERY). [Примеры](https://www.postgresonline.com/special_feature.php?sf_name=postgresql83tsearch_cheatsheet&outputformat=html).
+Параметр `q` поддерживает такие операторы как `-` (не включать сл слово) и `OR`. Данный функционал реализуется через `websearch_to_tsquery()`.
+
+Мне лень расписывать все правила, поэтому я их спиздил [отсюда](https://docs.arenadata.io/ru/ADPG/current/how-to/queries/full-text-search.html).
+
+`websearch_to_tsquery` использует альтернативный синтаксис для создания значения `tsquery` из текста запроса. Функция поддерживает следующий синтаксис:
+
+* Текст без кавычек преобразуется в лексемы, разделенные оператором `&`.
+* Текст в кавычках преобразуется в лексемы, разделенные оператором `<N>`.
+* `OR` преобразуется в оператор `|`.
+* `-` преобразуется в оператор `!`.
+
+ссылки:
+
+* [PostgreSQL: Full text search with the “websearch” syntax](https://adamj.eu/tech/2024/01/03/postgresql-full-text-search-websearch/)
+* [Подробнее про tsquery](https://www.postgresql.org/docs/current/datatype-textsearch.html#DATATYPE-TSQUERY).
 
 Локальная документация + песочница для выполнения запросов:
 
