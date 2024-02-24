@@ -29,7 +29,8 @@ from pydantic import (
 
 from .config import settings
 
-computed_field_property = computed_field(property)
+# Не понимаю почему другие не делают так
+computed_field_property = lambda f: computed_field(property(f))
 
 LOG = logging.getLogger("uvicorn.error")
 CUR_PATH = Path(__file__).parent
@@ -100,12 +101,12 @@ class InetNum(BaseModel):
     def num_addresses(self) -> int:
         return sum(x.num_addresses for x in self.cidrs)
 
-
     @computed_field_property
     def ipv6(self) -> bool:
         # Достаточно проверить первый айпи, но так надежнее
-        return isinstance(self.first_ip, ipaddress.IPv6Address) and \
-            isinstance(self.last_ip, ipaddress.IPv6Address)
+        return isinstance(self.first_ip, ipaddress.IPv6Address) and isinstance(
+            self.last_ip, ipaddress.IPv6Address
+        )
 
 
 class IPInfo(BaseModel):
