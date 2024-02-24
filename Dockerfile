@@ -11,6 +11,7 @@ ARG GID=1000
 RUN apk update && apk --no-cache add shadow \
   bash \
   git \
+  openssh \
   curl \
   netcat-openbsd \
   postgresql-client \
