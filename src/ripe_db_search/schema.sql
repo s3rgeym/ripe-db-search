@@ -25,7 +25,9 @@ CREATE INDEX IF NOT EXISTS inetnums_status_idx
   ON inetnums(lower(status));
 -- Для ускорения используется полнотекстовый поиск
 -- https://github.com/reginalin/postgres-full-text-search
--- select * from inetnums where search_vector @@ to_tsquery('sber')
+-- Создаем колонку значения которой будут генерироваться при каждой операции INSERT/UPDATE
+-- Далее ее использует так:
+--   select * from inetnums where search_vector @@ websearch_to_tsquery('sberbank')
 ALTER TABLE inetnums
 ADD COLUMN IF NOT EXISTS search_vector tsvector GENERATED ALWAYS AS (
     to_tsvector(
