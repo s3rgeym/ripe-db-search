@@ -150,7 +150,7 @@ x-execution-time: 0.002507539000362158
 }
 ```
 
-Параметр `q` поддерживает [специальные операторы](https://www.postgresql.org/docs/current/datatype-textsearch.html#DATATYPE-TSQUERY).
+Параметр `q` поддерживает [специальные операторы](https://www.postgresql.org/docs/current/datatype-textsearch.html#DATATYPE-TSQUERY). [Примеры](https://www.postgresonline.com/special_feature.php?sf_name=postgresql83tsearch_cheatsheet&outputformat=html).
 
 Локальная документация + песочница для выполнения запросов:
 

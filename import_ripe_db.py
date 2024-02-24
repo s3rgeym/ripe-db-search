@@ -39,18 +39,13 @@ class ANSI:
     RESET = f"{CSI}m"
     CLEAR_LINE = f"{CSI}2K\r"
     BLACK = f"{CSI}30m"
-    RED = f"{CSI}31m"
-    GREEN = f"{CSI}32m"
-    YELLOW = f"{CSI}33m"
+    ERROR = WARNING = RED = f"{CSI}31m"
+    SUCCESS = OK = GREEN = f"{CSI}32m"
+    ORANGE = YELLOW = f"{CSI}33m"
     BLUE = f"{CSI}34m"
-    MAGENTA = f"{CSI}35m"
+    PURPLE = MAGENTA = f"{CSI}35m"
     CYAN = f"{CSI}36m"
-    WHITE = f"{CSI}37m"
-    ORANGE = YELLOW
-    PURPLE = MAGENTA
-    GREY = WHITE
-    ERROR = WARNING = RED
-    SUCCESS = OK = GREEN
+    GREY = WHITE = f"{CSI}37m"
 
 
 CUR_PATH = Path(__file__).parent
