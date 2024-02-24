@@ -29,8 +29,11 @@ from pydantic import (
 
 from .config import settings
 
+
 # Не понимаю почему другие не делают так
-computed = lambda f: computed_field(property(f))
+def computed(fn):
+    return computed_field(property(fn))
+
 
 LOG = logging.getLogger("uvicorn.error")
 CUR_PATH = Path(__file__).parent
