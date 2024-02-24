@@ -210,6 +210,7 @@ def download_database(
         "Accept-Language": "en-US,en;q=0.7",
         "User-Agent": USER_AGENT,
     }
+    
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
     if path.exists():
         # Я подозреваю, что сервер ripe.net не поддерживает этот заголовок
