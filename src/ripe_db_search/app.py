@@ -148,8 +148,7 @@ class Pagination(BaseModel, Generic[T]):
     total: int
     results: list[T]
 
-    @computed_field
-    @property
+    @computed_field_property
     def pages(self) -> int:
         return self.total // self.per_page + 1
 
