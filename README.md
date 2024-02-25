@@ -13,6 +13,7 @@
 ```bash
 curl 'https://rest.db.ripe.net/search.json?query-string='$(curl -s ifconfig.me)'&flags=no-filtering&type-filter=inetnum'
 ```
+Но если с ним поэксперементировать, то обнаружится, что искать можно только по полному соотвествию, мз-за чего и был сохдан этот проект. 
 
 <details>
  <summary>Парсинг ответа на Python</summary>
@@ -52,11 +53,15 @@ KeyError: 'objects'
 ```
 </details>
 
-Но если с ним поэксперементировать, то обнаружится, что искать можно только по полному соотвествию, что собственно и оправдывает существование этого "проекта". 
+Однако, позже я обнаружил эту ссылку https://apps.db.ripe.net/db-web-ui/fulltextsearch
 
-И не мудренно, когда за разработку отвечают индусы.
+API для вею-гуйни позволяет все-таки выполнять поиск по части имени:
 
-![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/4adc796e-faf3-4012-8352-40e0cf6920aa)
+```bash
+curl -H'accept: application/json' 'https://apps.db.ripe.net/db-web-ui/api/rest/fulltextsearch/select?facet=true&format=xml&hl=true&q=(%22sber%22)%20AND%20(object-type:inetnum)&start=0&wt=json'
+```
+
+...но что сделано, то сделано
 
 ## Запуск и требования
 
