@@ -16,6 +16,7 @@ curl 'https://rest.db.ripe.net/search.json?query-string='$(curl -s ifconfig.me)'
 
 <details>
  <summary>Парсинг ответа на Python</summary>
+ 
 ```python
 >>> r = requests.get('https://rest.db.ripe.net/search.json', {'query-string': '77.88.55.242', 'flags': 'no-filtering', 'type-filter': 'inetnum'})
 >>> data = r.json()
