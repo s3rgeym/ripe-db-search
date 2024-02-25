@@ -61,6 +61,19 @@ API для вею-гуйни позволяет все-таки выполнят
 curl -H'accept: application/json' 'https://apps.db.ripe.net/db-web-ui/api/rest/fulltextsearch/select?facet=true&format=xml&hl=true&q=(%22sber%22)%20AND%20(object-type:inetnum)&start=0&wt=json'
 ```
 
+У них какой-то свой язык запросов:
+
+```json
+{
+    "facet": "true",
+    "format": "xml",
+    "hl": "true",
+    "q": "(\"sber\") AND (object-type:inet6num OR object-type:inetnum)",
+    "start": "0",
+    "wt": "json"
+}
+```
+
 ...но что сделано, то сделано, вернусь к этому проекту, если меня ripe.net забанит
 
 ## Запуск и требования
