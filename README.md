@@ -27,8 +27,26 @@ dict_keys(['service', 'parameters', 'objects', 'terms-and-conditions', 'version'
 >>> [{x['name']: x['value'] for x in item['attributes']['attribute']} for item in filter(lambda x: x['type'] == 'inetnum', data['objects']['object'])]
 [{'inetnum': '77.88.55.0 - 77.88.55.255', 'netname': 'YANDEX-77-88-55', 'status': 'ASSIGNED PA', 'country': 'RU', 'descr': 'Yandex enterprise network', 'admin-c': 'YNDX1-RIPE', 'tech-c': 'YNDX1-RIPE', 'remarks': 'INFRA-AW', 'org': 'ORG-YA1-RIPE', 'mnt-by': 'YANDEX-MNT', 'source': 'RIPE', 'created': '2012-10-12T12:22:03Z', 'last-modified': '2022-04-05T15:29:50Z'}]
 >>>
+
+def ripe_search_inetnums(q):
+  r = requests.get('https://rest.db.ripe.net/search.json', {'query-string': q, 'flags': 'no-filtering', 'type-filter': 'inetnum'})
+  data = r.json()
+  return [
+    {x['name']: x['value'] for x in item['attributes']['attribute']}
+    for item in filter(lambda x: x['type'] == 'inetnum', data['objects']['object'])
+  ]
+
+>>> results = ripe_search_inetnums('sberbank')
+>>> len(results)
+15
 ```
 </details>
+
+Но если с ним поэксперементировать, то обнаружится, что искать можно только полному соттвествию...
+
+И не мудренно, когда за разработку отвкчают индусы.
+
+![image](https://github.com/s3rgeym/ripe-db-search/assets/12753171/4adc796e-faf3-4012-8352-40e0cf6920aa)
 
 ## Запуск и требования
 
