@@ -233,3 +233,7 @@ pip install '.[dev]'
 Зависимости в том же файле прописывать
 
 Настройка pylint: см `pylintrc`, ищи `[MESSAGES CONTROL]`, `disable=`.
+
+## TODO
+
+* Кроме `org` есть еще поле `org-name`
