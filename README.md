@@ -39,10 +39,20 @@ def ripe_search_inetnums(q):
 >>> results = ripe_search_inetnums('sberbank')
 >>> len(results)
 15
+>>> results = ripe_search_inetnums('sber')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 6, in ripe_search_inetnums
+KeyError: 'objects'
+>>> results = ripe_search_inetnums('sber*')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 6, in ripe_search_inetnums
+KeyError: 'objects'
 ```
 </details>
 
-Но если с ним поэксперементировать, то обнаружится, что искать можно только полному соттвествию...
+Но если с ним поэксперементировать, то обнаружится, что искать можно только по полному соотвествию, что собственно и оправдывает существование этого "проекта". 
 
 И не мудренно, когда за разработку отвечают индусы.
 
