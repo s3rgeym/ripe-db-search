@@ -2,6 +2,24 @@
 
 Предоставляет API для поиска сетей в базе RIPE DB. Еще понятнее: я взял распарсил базу RIPE, организации-монополиста (осуждаю) со штаб-квартирой в пидерландах (их тоже осуждаю ибо нехуй), которая распределяет блоки ip-адресов между всякими хостинг-провайдерами и прочим около-IT, и прикрутил к ней поисковик.
 
+Если не нужен какой-то продвинутый поиск, используйте [ripe-ip-seach](https://github.com/s3rgeym/ripe-ip-seach):
+
+```bash
+$ pipx install ripe-ip-search
+
+$ ripe-ip-search -h
+usage: ripe-ip-search [-h] [-v] search_term
+
+Search ip adresses using RIPE DB
+
+positional arguments:
+  search_term
+
+options:
+  -h, --help       show this help message and exit
+  -v, --verbosity  increase verbosity level
+```
+
 Да, существуют сервисы официальные и сторонние типа 2ip, но:
 
 * Там есть ограничения на количество запросов
@@ -74,7 +92,7 @@ curl -H'accept: application/json' 'https://apps.db.ripe.net/db-web-ui/api/rest/f
 }
 ```
 
-...но что сделано, то сделано, вернусь к этому проекту, если меня ripe.net забанит
+...но что сделано, то сделано, вернусь к этому проекту, если меня ripe.net забанит...
 
 ## Запуск и требования
 
