@@ -6,6 +6,11 @@
 
 ```bash
 $ pipx install ripe-ip-search
+Installing to existing venv 'ripe_ip_search'
+  installed package ripe_ip_search 0.1.0, installed using Python 3.11.7
+  These apps are now globally available
+    - ripe-ip-search
+done! ✨ 🌟 ✨
 
 $ ripe-ip-search -h
 usage: ripe-ip-search [-h] [-v] search_term
